@@ -1,0 +1,689 @@
+<!doctype html>
+<html lang="pt" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Awards Futebol</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { font-family: 'Plus Jakarta Sans', sans-serif; }
+    body { background-color: #050a18; }
+    .gradient-bg { background: radial-gradient(circle at top right, #1e3a8a, #050a18); }
+    .premium-card { background: rgba(30, 41, 59, 0.5); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
+    .podium-1 { transform: scale(1.1); z-index: 10; border: 4px solid #fbbf24; box-shadow: 0 0 30px rgba(251, 191, 36, 0.3); }
+    .podium-2 { border: 3px solid #94a3b8; }
+    .podium-3 { border: 3px solid #b45309; }
+    .btn-primary { background: linear-gradient(to right, #2563eb, #1d4ed8); transition: all 0.3s ease; }
+    .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 10px 20px -5px rgba(37, 99, 235, 0.4); }
+    .rating-btn.active { background-color: #2563eb; color: white; border-color: #3b82f6; box-shadow: 0 0 15px rgba(37, 99, 235, 0.5); }
+    .modal-backdrop { background-color: rgba(2, 6, 23, 0.93); backdrop-filter: blur(12px); }
+    .category-tab.active { background-color: #2563eb; color: white; border-color: #3b82f6; }
+    .player-checkbox:checked + label { background-color: rgba(37, 99, 235, 0.2); border-color: #3b82f6; box-shadow: 0 0 15px rgba(37, 99, 235, 0.2); }
+    .player-checkbox:checked + label .check-indicator { display: flex; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
+  </style>
+ </head>
+ <body class="h-full text-slate-200 overflow-auto gradient-bg">
+
+  <!-- LOADING -->
+  <div id="loading-screen" class="fixed inset-0 z-[100] bg-[#050a18] flex flex-col items-center justify-center transition-opacity duration-500">
+    <div class="text-center animate-pulse">
+      <h2 class="text-white text-2xl font-black tracking-widest uppercase italic">AWARDS FUTEBOL</h2>
+      <p class="text-blue-500 text-[10px] font-bold mt-2 tracking-[0.5em]">PREPARANDO O TAPETE VERMELHO...</p>
+    </div>
+  </div>
+
+  <div id="app" class="min-h-full w-full hidden">
+   
+   <!-- LOGIN SCREEN -->
+   <div id="login-screen" class="min-h-full flex items-center justify-center p-4">
+    <div class="max-w-md w-full bg-[#0f172a] rounded-[3rem] shadow-2xl border border-white/5 overflow-hidden">
+     <div class="p-10 text-center">
+      <div class="mb-8">
+        <h1 class="text-3xl font-extrabold text-white italic">Pinto Basto</h1>
+        <p class="text-blue-400 font-bold tracking-[0.3em] uppercase text-[10px] mt-2">Awards Futebol</p>
+      </div>
+      
+      <div class="space-y-6">
+        <div class="text-left">
+          <label class="block text-[10px] font-black uppercase tracking-[0.15em] text-slate-500 mb-2 ml-1">Entrada Atleta</label> 
+          <select id="player-select" class="w-full px-6 py-4 bg-[#1e293b] border border-white/5 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none text-white appearance-none cursor-pointer mb-4 text-sm font-medium"> 
+            <option value="">Seleciona o teu nome...</option> 
+          </select> 
+          <button onclick="loginAsPlayer()" class="w-full btn-primary text-white font-black py-4 rounded-2xl shadow-lg active:scale-95 text-sm uppercase tracking-wider">Entrar no Balneário</button>
+        </div>
+
+        <button onclick="viewAsGuest()" class="w-full flex items-center justify-center gap-3 bg-white/5 hover:bg-white/10 text-white font-bold py-4 rounded-2xl transition-all border border-white/10 text-xs uppercase tracking-widest shadow-xl">
+          <span class="text-lg">📊</span> Consultar Ranking
+        </button>
+
+        <div class="relative py-4">
+         <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-white/5"></div></div>
+         <div class="relative flex justify-center text-[9px] uppercase font-black text-slate-600"><span class="px-4 bg-[#0f172a]">Segurança</span></div>
+        </div>
+
+        <div class="space-y-3">
+          <input id="admin-password" type="password" placeholder="Chave Mestra" class="w-full px-6 py-4 bg-[#1e293b] border border-white/5 rounded-2xl outline-none text-white focus:ring-2 focus:ring-slate-500 text-sm">
+          <button onclick="loginAsAdmin()" class="w-full bg-white/5 hover:bg-white/10 text-slate-300 font-bold py-4 rounded-2xl transition-all border border-white/5 text-xs uppercase tracking-widest">Acesso VIP Admin</button>
+        </div>
+      </div>
+     </div>
+    </div>
+   </div>
+
+   <!-- MAIN APP -->
+   <div id="main-app" class="hidden min-h-full flex flex-col">
+    <header class="bg-[#050a18]/80 backdrop-blur-xl border-b border-white/5 sticky top-0 z-40">
+     <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+      <div class="flex items-center gap-4">
+        <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center border border-white/10 shadow-lg shadow-blue-900/20">
+          <span class="text-xs font-black text-white italic">PB</span>
+        </div>
+        <h1 class="text-sm font-black text-white uppercase tracking-tighter">Awards <span class="text-blue-500">Futebol</span></h1>
+      </div>
+      <div class="flex items-center gap-4">
+        <span id="user-badge" class="hidden sm:inline-block text-[10px] font-black uppercase bg-blue-500/10 text-blue-400 px-4 py-2 rounded-full border border-blue-500/20 tracking-widest"></span> 
+        <button onclick="logout()" class="p-2.5 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-xl transition-all border border-red-500/20 text-[10px] font-black uppercase px-4">Sair</button>
+      </div>
+     </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-8">
+     
+     <!-- RANKING SECTION -->
+     <div id="ranking-section" class="space-y-8 mb-16 hidden">
+        <div class="flex flex-col items-center text-center space-y-4">
+            <h2 class="text-3xl sm:text-4xl font-black text-white tracking-tight">Quadros de Honra</h2>
+            <div id="category-tabs" class="flex flex-wrap justify-center gap-2 max-w-2xl">
+                <button onclick="changeRankingTab('all')" class="category-tab px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border border-white/10 bg-white/5 active">Geral (Bola de Ouro)</button>
+            </div>
+        </div>
+        <div id="podium-container" class="flex flex-col md:flex-row justify-center items-end gap-6 md:gap-0 pt-16 pb-10 min-h-[300px]"></div>
+        <div class="bg-[#0f172a]/80 rounded-[2.5rem] border border-white/5 overflow-hidden shadow-2xl backdrop-blur-md">
+            <div class="p-6 sm:p-8 border-b border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 bg-white/5">
+                <h3 id="ranking-table-title" class="font-black text-white uppercase text-sm tracking-widest italic">Ranking Geral</h3>
+                <div class="flex gap-4">
+                    <span class="text-[9px] font-bold text-slate-500 uppercase flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-blue-500"></div> Positivo</span>
+                    <span class="text-[9px] font-bold text-slate-500 uppercase flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-red-500"></div> Penalização</span>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="text-[10px] font-black text-slate-500 uppercase border-b border-white/5">
+                            <th class="px-6 py-5">Pos</th>
+                            <th class="px-6 py-5">Atleta</th>
+                            <th class="px-4 py-5 text-center">Perf.</th>
+                            <th class="px-4 py-5 text-center">Def.</th>
+                            <th class="px-4 py-5 text-center">Golo</th>
+                            <th class="px-4 py-5 text-center">Temp.</th>
+                            <th class="px-4 py-5 text-center text-red-400">Batota</th>
+                            <th class="px-6 py-5 text-right bg-blue-600/10 text-blue-400">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody id="results-table-body" class="divide-y divide-white/5"></tbody>
+                </table>
+            </div>
+        </div>
+     </div>
+
+     <!-- ADMIN DASHBOARD -->
+     <div id="admin-dashboard" class="hidden space-y-12">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+       <div class="bg-[#0f172a] rounded-3xl p-8 border border-white/5 shadow-xl">
+          <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Total Atletas</p>
+          <p id="stat-players" class="text-5xl font-black text-white mt-2 italic">0</p>
+       </div>
+       <div class="bg-[#0f172a] rounded-3xl p-8 border border-white/5 shadow-xl">
+          <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Jogos Awards</p>
+          <p id="stat-games" class="text-5xl font-black text-white mt-2 italic">0</p>
+       </div>
+       <div class="bg-[#0f172a] rounded-3xl p-8 border border-white/5 shadow-xl">
+          <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Votos Registados</p>
+          <p id="stat-votes" class="text-5xl font-black text-blue-500 mt-2 italic">0</p>
+       </div>
+      </div>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 pt-6">
+        <div class="bg-[#0f172a] rounded-[2.5rem] border border-white/5 overflow-hidden">
+          <div class="p-8 border-b border-white/5 flex justify-between items-center bg-white/2">
+            <h2 class="font-black text-white uppercase text-xs tracking-widest italic">Gestão de Plantel</h2>
+            <button onclick="openPlayerModal()" class="text-[9px] font-black uppercase bg-blue-600 text-white px-5 py-2.5 rounded-xl hover:bg-blue-500 transition-all shadow-lg shadow-blue-900/40">Novo Atleta</button>
+          </div>
+          <div id="players-list" class="divide-y divide-white/5 max-h-[450px] overflow-y-auto"></div>
+        </div>
+        <div class="bg-[#0f172a] rounded-[2.5rem] border border-white/5 overflow-hidden">
+          <div class="p-8 border-b border-white/5 flex justify-between items-center bg-white/2">
+            <h2 class="font-black text-white uppercase text-xs tracking-widest italic">Histórico de Jogos</h2>
+            <button onclick="openGameModal()" class="text-[9px] font-black uppercase bg-green-600 text-white px-5 py-2.5 rounded-xl hover:bg-green-500 transition-all shadow-lg shadow-green-900/40">Criar Evento</button>
+          </div>
+          <div id="games-list" class="divide-y divide-white/5 max-h-[450px] overflow-y-auto"></div>
+        </div>
+      </div>
+     </div>
+
+     <!-- PLAYER DASHBOARD -->
+     <div id="player-dashboard" class="hidden space-y-8">
+       <div class="flex flex-col sm:flex-row items-center gap-8 bg-[#0f172a] p-10 rounded-[3rem] border border-white/5 shadow-2xl relative overflow-hidden group">
+         <div class="absolute top-0 right-0 w-64 h-64 bg-blue-600/5 rounded-full -mr-32 -mt-32 blur-3xl"></div>
+         <div id="current-player-photo" class="w-32 h-32 rounded-[2.5rem] bg-white/5 overflow-hidden shadow-2xl border-2 border-white/10 flex-shrink-0 z-10"></div>
+         <div class="text-center sm:text-left z-10">
+            <h2 class="text-4xl font-black text-white tracking-tighter">Olá, <span id="player-welcome-name" class="text-blue-500 italic"></span></h2>
+            <p class="text-slate-400 text-sm mt-2 font-medium">As votações abrem apenas após o final da partida.</p>
+         </div>
+       </div>
+       <div id="voting-games-list" class="grid gap-6"></div>
+     </div>
+
+     <div id="guest-notice" class="hidden text-center py-10">
+        <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em]">Modo Consulta • <button onclick="logout()" class="text-blue-500 underline">Fazer Login</button></p>
+     </div>
+    </main>
+   </div>
+
+   <!-- MODALS -->
+   <div id="player-modal" class="hidden fixed inset-0 modal-backdrop flex items-center justify-center p-4 z-50">
+    <div class="bg-[#0f172a] rounded-[3rem] w-full max-w-md border border-white/10 p-10 space-y-6 shadow-2xl">
+      <h3 class="font-black text-white text-xl text-center uppercase tracking-widest italic">Perfil do Atleta</h3>
+      <input type="hidden" id="edit-player-id">
+      <div id="photo-preview-container" class="w-36 h-36 bg-white/5 mx-auto rounded-[2.5rem] flex items-center justify-center overflow-hidden border-2 border-dashed border-white/20 cursor-pointer hover:border-blue-500 transition-all" onclick="document.getElementById('new-player-photo').click()">
+         <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest text-center px-4">Foto Atleta</p>
+      </div>
+      <input id="new-player-photo" type="file" accept="image/*" class="hidden" onchange="handlePhotoUpload(this)">
+      <input id="new-player-name" type="text" placeholder="Nome do Jogador" class="w-full px-6 py-4 bg-[#1e293b] border border-white/5 rounded-2xl text-white outline-none focus:ring-2 focus:ring-blue-500 font-medium">
+      <select id="new-player-position" class="w-full px-6 py-4 bg-[#1e293b] border border-white/5 rounded-2xl text-white outline-none font-medium">
+        <option value="Guarda-redes">Guarda-redes</option>
+        <option value="Defesa">Defesa</option>
+        <option value="Médio">Médio</option>
+        <option value="Avançado">Avançado</option>
+      </select>
+      <div class="flex gap-4 pt-4">
+        <button onclick="closeModal('player-modal')" class="flex-1 py-4 bg-white/5 text-slate-400 font-bold rounded-2xl uppercase text-[10px] tracking-widest">Cancelar</button>
+        <button onclick="savePlayer()" class="flex-1 py-4 bg-blue-600 text-white font-black rounded-2xl uppercase text-[10px] tracking-widest">Guardar</button>
+      </div>
+    </div>
+   </div>
+
+   <div id="game-modal" class="hidden fixed inset-0 modal-backdrop flex items-center justify-center p-4 z-50">
+    <div class="bg-[#0f172a] rounded-[3rem] w-full max-w-2xl border border-white/10 flex flex-col max-h-[90%] overflow-hidden shadow-2xl">
+     <div class="p-8 border-b border-white/5 flex justify-between items-center bg-white/2">
+      <h3 class="font-black text-white uppercase text-sm tracking-widest italic">Convocatória de Jogo</h3>
+      <button onclick="closeModal('game-modal')" class="text-slate-500 hover:text-white transition-colors">✕</button>
+     </div>
+     <div class="p-10 space-y-8 overflow-y-auto">
+        <input type="hidden" id="edit-game-id">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <input id="new-game-title" type="text" placeholder="Ex: Jornada 14" class="w-full px-6 py-4 bg-[#1e293b] border border-white/5 rounded-2xl text-white outline-none focus:ring-2 focus:ring-green-500 font-medium">
+          <input id="new-game-date" type="date" class="w-full px-6 py-4 bg-[#1e293b] border border-white/5 rounded-2xl text-white outline-none font-medium">
+        </div>
+        <div id="call-up-list" class="grid grid-cols-2 sm:grid-cols-4 gap-4 pb-10"></div>
+     </div>
+     <div class="p-8 bg-white/2 border-t border-white/5">
+        <button onclick="saveGame()" class="w-full bg-green-600 py-5 text-white font-black rounded-2xl hover:bg-green-500 transition-all uppercase tracking-widest text-xs">Publicar Jogo</button>
+     </div>
+    </div>
+   </div>
+
+   <div id="voting-modal" class="hidden fixed inset-0 modal-backdrop flex items-center justify-center p-4 z-50">
+    <div class="bg-[#0f172a] rounded-[3.5rem] w-full max-w-4xl max-h-[94%] flex flex-col overflow-hidden border border-white/10">
+     <div class="p-10 border-b border-white/5 flex flex-col sm:flex-row justify-between items-center bg-[#050a18]/50 gap-6">
+      <div>
+          <h3 class="font-black text-3xl text-white tracking-tighter italic">Votações <span class="text-blue-600">Awards Futebol</span></h3>
+          <p class="text-blue-500 text-[10px] font-bold uppercase tracking-[0.3em] mt-2">Atribui pontuação de 0 a 5</p>
+      </div>
+      <button onclick="closeModal('voting-modal')" class="w-full sm:w-auto bg-blue-600 px-10 py-4 rounded-2xl text-white font-black uppercase text-[10px] tracking-widest">Finalizar</button>
+     </div>
+     <div id="voting-modal-content" class="p-10 overflow-y-auto space-y-16"></div>
+    </div>
+   </div>
+  </div>
+
+  <script>
+    const ADMIN_PASS = "admin123";
+    const CATEGORIES = [
+      { id: 'perf', name: 'Melhor Desempenho', icon: '⭐', type: 'positive' },
+      { id: 'def', name: 'Muralha Defensiva', icon: '🛡️', type: 'positive' },
+      { id: 'gol', name: 'Instinto Goleador', icon: '⚔️', type: 'positive' },
+      { id: 'temp', name: 'Temperamento Forte', icon: '😤', type: 'positive' },
+      { id: 'bat', name: 'Estrategista (Batota)', icon: '⚠️', type: 'negative' }
+    ];
+
+    let players = [];
+    let games = [];
+    let votes = []; 
+    let currentUser = null;
+    let tempPhoto = "";
+    let currentRankingTab = 'all';
+
+    function init() {
+      loadFromStorage();
+      renderTabs();
+      renderLoginOptions();
+      setTimeout(() => {
+        document.getElementById('loading-screen').style.opacity = '0';
+        setTimeout(() => {
+          document.getElementById('loading-screen').style.display = 'none';
+          document.getElementById('app').classList.remove('hidden');
+        }, 500);
+      }, 1000);
+    }
+
+    function loadFromStorage() {
+      players = JSON.parse(localStorage.getItem('pb_players')) || [];
+      games = JSON.parse(localStorage.getItem('pb_games')) || [];
+      votes = JSON.parse(localStorage.getItem('pb_votes')) || [];
+    }
+
+    function saveData() {
+      localStorage.setItem('pb_players', JSON.stringify(players));
+      localStorage.setItem('pb_games', JSON.stringify(games));
+      localStorage.setItem('pb_votes', JSON.stringify(votes));
+      updateActiveUI();
+    }
+
+    function updateActiveUI() {
+      renderLoginOptions();
+      renderResultsUI();
+      if (currentUser === 'admin') renderAdminDashboard();
+      if (currentUser && currentUser !== 'admin' && currentUser !== 'guest') renderPlayerDashboard();
+    }
+
+    function renderTabs() {
+        const cont = document.getElementById('category-tabs');
+        CATEGORIES.forEach(cat => {
+            const btn = document.createElement('button');
+            btn.className = 'category-tab px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border border-white/10 bg-white/5';
+            btn.textContent = cat.name;
+            btn.onclick = () => changeRankingTab(cat.id);
+            btn.id = `tab-${cat.id}`;
+            cont.appendChild(btn);
+        });
+    }
+
+    function changeRankingTab(tabId) {
+        currentRankingTab = tabId;
+        document.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
+        if(tabId === 'all') {
+            document.querySelector('[onclick="changeRankingTab(\'all\')"]').classList.add('active');
+        } else {
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+        }
+        renderResultsUI();
+    }
+
+    function loginAsAdmin() {
+      if (document.getElementById('admin-password').value === ADMIN_PASS) {
+        currentUser = 'admin'; showView('admin');
+      } else { alert('Acesso negado.'); }
+    }
+
+    function loginAsPlayer() {
+      const id = document.getElementById('player-select').value;
+      if (!id) return;
+      currentUser = players.find(x => x.id === id);
+      if (currentUser) showView('player');
+    }
+
+    function viewAsGuest() {
+      currentUser = 'guest';
+      showView('guest');
+    }
+
+    function logout() {
+      currentUser = null;
+      document.getElementById('main-app').classList.add('hidden');
+      document.getElementById('login-screen').classList.remove('hidden');
+      document.getElementById('ranking-section').classList.add('hidden');
+      document.getElementById('admin-password').value = "";
+    }
+
+    function showView(role) {
+      document.getElementById('login-screen').classList.add('hidden');
+      document.getElementById('main-app').classList.remove('hidden');
+      document.getElementById('ranking-section').classList.remove('hidden');
+      const badge = document.getElementById('user-badge');
+      const guestNotice = document.getElementById('guest-notice');
+      badge.classList.remove('hidden');
+      guestNotice.classList.add('hidden');
+
+      if (role === 'admin') {
+        badge.textContent = 'DIREÇÃO';
+        document.getElementById('admin-dashboard').classList.remove('hidden');
+        document.getElementById('player-dashboard').classList.add('hidden');
+        renderAdminDashboard();
+      } else if (role === 'guest') {
+        badge.textContent = 'CONVIDADO';
+        document.getElementById('admin-dashboard').classList.add('hidden');
+        document.getElementById('player-dashboard').classList.add('hidden');
+        guestNotice.classList.remove('hidden');
+      } else {
+        badge.textContent = currentUser.name.split(' ')[0];
+        document.getElementById('player-dashboard').classList.remove('hidden');
+        document.getElementById('admin-dashboard').classList.add('hidden');
+        renderPlayerDashboard();
+      }
+      renderResultsUI();
+    }
+
+    function openVoting(gameId) {
+      const game = games.find(g => g.id === gameId);
+      // Validar data no JS por segurança extra
+      const gameDate = new Date(game.date);
+      const today = new Date();
+      today.setHours(0,0,0,0);
+      
+      if (gameDate > today) {
+          alert("Este jogo ainda não foi realizado. As votações só abrem após a data do jogo.");
+          return;
+      }
+
+      const others = players.filter(p => p.id !== currentUser.id && game.playerIds.includes(p.id));
+      const shuffledPlayers = others.sort(() => Math.random() - 0.5);
+      const content = document.getElementById('voting-modal-content');
+      content.innerHTML = CATEGORIES.map(cat => `
+        <div class="space-y-8">
+          <div class="flex items-end gap-4 border-b border-white/5 pb-6">
+              <span class="text-4xl drop-shadow-lg">${cat.icon}</span>
+              <div>
+                  <h4 class="text-white font-black text-2xl uppercase tracking-tighter italic">${cat.name}</h4>
+                  <p class="text-[9px] font-black text-blue-500 uppercase tracking-widest">${cat.type === 'negative' ? 'PONTOS NEGATIVOS' : 'AVALIAÇÃO POSITIVA'}</p>
+              </div>
+          </div>
+          <div class="grid gap-6">
+            ${shuffledPlayers.map(p => {
+              const currentV = votes.find(v => v.gameId === gameId && v.voterId === currentUser.id && v.category === cat.id && v.targetId === p.id);
+              const score = currentV ? currentV.score : -1;
+              return `
+                <div class="bg-white/2 p-6 rounded-[2.5rem] flex flex-col lg:flex-row items-center justify-between gap-6 border border-white/5 hover:border-blue-500/30 transition-all">
+                  <div class="flex items-center gap-4 w-full lg:w-auto">
+                    <div class="w-14 h-14 rounded-2xl overflow-hidden bg-white/5 border border-white/10">
+                      ${p.photo ? `<img src="${p.photo}" class="w-full h-full object-cover">` : ''}
+                    </div>
+                    <span class="text-xs font-black text-white uppercase tracking-wider">${p.name}</span>
+                  </div>
+                  <div class="flex flex-wrap justify-center gap-2">
+                    ${[0, 1, 2, 3, 4, 5].map(val => `
+                      <button onclick="setScore('${gameId}','${cat.id}','${p.id}', ${val}, this)" 
+                        class="rating-btn w-10 h-10 sm:w-12 sm:h-12 rounded-xl border border-white/10 font-black text-sm transition-all
+                        ${score === val ? 'active' : 'bg-[#1e293b] text-slate-500 hover:bg-white/10'}">
+                        ${val}
+                      </button>
+                    `).join('')}
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `).join('');
+      openModal('voting-modal');
+    }
+
+    function setScore(gId, catId, tId, score, btn) {
+      votes = votes.filter(v => !(v.gameId === gId && v.voterId === currentUser.id && v.category === catId && v.targetId === tId));
+      votes.push({ gameId: gId, voterId: currentUser.id, category: catId, targetId: tId, score: score });
+      saveData();
+      btn.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    function calculateRankings() {
+        return players.map(p => {
+            const playerVotes = votes.filter(v => v.targetId === p.id);
+            const catPoints = {};
+            CATEGORIES.forEach(cat => {
+                const scores = playerVotes.filter(v => v.category === cat.id).map(v => v.score);
+                catPoints[cat.id] = scores.reduce((a, b) => a + b, 0);
+            });
+            const positiveSum = (catPoints['perf'] || 0) + (catPoints['def'] || 0) + (catPoints['gol'] || 0) + (catPoints['temp'] || 0);
+            const negativeSum = (catPoints['bat'] || 0);
+            const total = positiveSum - negativeSum;
+            return { ...p, catPoints, total };
+        });
+    }
+
+    function renderResultsUI() {
+      const allStats = calculateRankings();
+      let ranking = [];
+      const titleEl = document.getElementById('ranking-table-title');
+      if (currentRankingTab === 'all') {
+          ranking = allStats.sort((a, b) => b.total - a.total);
+          titleEl.innerHTML = "Awards <span class='text-blue-500'>Futebol</span> (Bola de Ouro)";
+      } else {
+          const cat = CATEGORIES.find(c => c.id === currentRankingTab);
+          ranking = allStats.sort((a, b) => b.catPoints[cat.id] - a.catPoints[cat.id]);
+          titleEl.innerHTML = `${cat.name} ${cat.icon}`;
+      }
+      const podiumCont = document.getElementById('podium-container');
+      if (ranking.length >= 1) {
+          const top3 = [ranking[1], ranking[0], ranking[2]].filter(p => p);
+          podiumCont.innerHTML = top3.map(p => {
+              const isFirst = (p.id === ranking[0].id);
+              const isSecond = ranking[1] && (p.id === ranking[1].id);
+              const isThird = ranking[2] && (p.id === ranking[2].id);
+              const posClass = isFirst ? 'podium-1 w-44 h-44 sm:w-52 sm:h-52' : 'w-32 h-32 sm:w-36 sm:h-36 opacity-70';
+              const pts = currentRankingTab === 'all' ? p.total : p.catPoints[currentRankingTab];
+              return `
+                <div class="flex flex-col items-center gap-6 ${isFirst ? 'mb-12' : 'mb-0'}">
+                    <div class="relative">
+                        <div class="${posClass} rounded-[3rem] overflow-hidden border-4 border-white/10 shadow-3xl bg-[#0f172a]">
+                            ${p.photo ? `<img src="${p.photo}" class="w-full h-full object-cover">` : ''}
+                        </div>
+                        <div class="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-white text-slate-900 w-10 h-10 rounded-2xl flex items-center justify-center font-black shadow-2xl text-xl italic">
+                            ${isFirst ? '🥇' : (isSecond ? '🥈' : '🥉')}
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <p class="font-black text-white text-sm uppercase tracking-tight">${p.name.split(' ')[0]}</p>
+                        <p class="text-[10px] font-black text-blue-500 uppercase mt-1 tracking-widest">${pts} PTS</p>
+                    </div>
+                </div>`;
+          }).join('');
+      } else { podiumCont.innerHTML = `<p class="text-slate-600 font-black uppercase text-[10px] tracking-widest italic">Aguardando resultados...</p>`; }
+
+      document.getElementById('results-table-body').innerHTML = ranking.map((p, idx) => {
+        const pts = currentRankingTab === 'all' ? p.total : p.catPoints[currentRankingTab];
+        return `
+        <tr class="hover:bg-white/2 transition-colors border-white/5">
+            <td class="px-6 py-5"><span class="w-8 h-8 rounded-xl ${idx === 0 ? 'bg-yellow-500' : 'bg-white/5'} flex items-center justify-center text-[10px] font-black text-white italic">${idx + 1}</span></td>
+            <td class="px-6 py-5"><div class="flex items-center gap-4"><div class="w-10 h-10 rounded-xl overflow-hidden bg-white/5 border border-white/10">${p.photo ? `<img src="${p.photo}" class="w-full h-full object-cover">` : ''}</div><div><span class="font-bold text-white text-sm block">${p.name}</span><span class="text-[8px] font-black text-slate-500 uppercase">${p.position}</span></div></div></td>
+            <td class="px-4 py-5 text-center text-xs ${currentRankingTab === 'perf' ? 'bg-blue-600/20 text-white' : 'text-slate-400'}">${p.catPoints['perf'] || 0}</td>
+            <td class="px-4 py-5 text-center text-xs ${currentRankingTab === 'def' ? 'bg-blue-600/20 text-white' : 'text-slate-400'}">${p.catPoints['def'] || 0}</td>
+            <td class="px-4 py-5 text-center text-xs ${currentRankingTab === 'gol' ? 'bg-blue-600/20 text-white' : 'text-slate-400'}">${p.catPoints['gol'] || 0}</td>
+            <td class="px-4 py-5 text-center text-xs ${currentRankingTab === 'temp' ? 'bg-blue-600/20 text-white' : 'text-slate-400'}">${p.catPoints['temp'] || 0}</td>
+            <td class="px-4 py-5 text-center text-xs ${currentRankingTab === 'bat' ? 'bg-red-500/20' : ''} text-red-400">${p.catPoints['bat'] || 0}</td>
+            <td class="px-6 py-5 text-right font-black text-blue-500 bg-blue-500/5">${pts}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    function renderPlayerDashboard() {
+      const myGames = games.filter(g => g.playerIds.includes(currentUser.id));
+      document.getElementById('current-player-photo').innerHTML = currentUser.photo ? `<img src="${currentUser.photo}" class="w-full h-full object-cover">` : '';
+      document.getElementById('player-welcome-name').textContent = currentUser.name.split(' ')[0];
+      const list = document.getElementById('voting-games-list');
+      
+      if (myGames.length === 0) {
+        list.innerHTML = `<div class="p-16 text-center border-2 border-dashed border-white/5 rounded-[3rem] text-slate-600 text-[10px] font-black uppercase tracking-widest italic">Nenhuma convocatória registada...</div>`;
+        return;
+      }
+
+      list.innerHTML = myGames.map(g => {
+        const others = players.filter(p => p.id !== currentUser.id && g.playerIds.includes(p.id));
+        const currentVotes = votes.filter(v => v.gameId === g.id && v.voterId === currentUser.id).length;
+        const requiredVotes = others.length * CATEGORIES.length;
+        const isFinished = currentVotes >= requiredVotes;
+        const pct = requiredVotes > 0 ? Math.round((currentVotes / requiredVotes) * 100) : 0;
+        
+        // Lógica de Bloqueio por Data
+        const gameDate = new Date(g.date);
+        const today = new Date();
+        today.setHours(0,0,0,0);
+        const canVote = gameDate <= today;
+
+        return `
+          <div class="p-8 bg-[#0f172a] rounded-[3rem] border border-white/5 flex flex-col md:flex-row justify-between items-center gap-6 shadow-xl relative overflow-hidden group ${!canVote ? 'opacity-60 grayscale' : ''}">
+            <div class="flex-1 text-center md:text-left">
+              <h4 class="font-black text-white text-2xl tracking-tighter uppercase italic">${g.title}</h4>
+              <p class="text-[9px] text-slate-500 font-black uppercase mt-1 tracking-widest">${g.date} • ${others.length} Atletas</p>
+            </div>
+            <div class="flex items-center gap-6 w-full md:w-auto">
+                <div class="flex flex-col gap-2 flex-1 md:w-48">
+                    <div class="flex justify-between text-[8px] font-black text-slate-500 uppercase">
+                        <span>${isFinished ? 'Submetido' : 'Progresso'}</span>
+                        <span>${pct}%</span>
+                    </div>
+                    <div class="bg-white/5 h-2 rounded-full overflow-hidden">
+                        <div class="bg-blue-600 h-full transition-all duration-700" style="width: ${pct}%"></div>
+                    </div>
+                </div>
+                ${isFinished ? 
+                  `<div class="px-8 py-4 bg-green-500/10 text-green-500 rounded-2xl font-black text-[10px] uppercase border border-green-500/20">Concluído</div>` :
+                  (canVote ? 
+                    `<button onclick="openVoting('${g.id}')" class="px-10 py-4 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase hover:scale-105 active:scale-95 transition-all shadow-lg shadow-blue-900/40">Votar</button>` :
+                    `<div class="px-8 py-4 bg-white/5 text-slate-500 rounded-2xl font-black text-[10px] uppercase border border-white/5">Bloqueado</div>`
+                  )
+                }
+            </div>
+          </div>`;
+      }).reverse().join('');
+    }
+
+    function renderAdminDashboard() {
+      document.getElementById('stat-players').textContent = players.length;
+      document.getElementById('stat-games').textContent = games.length;
+      document.getElementById('stat-votes').textContent = votes.length;
+      document.getElementById('players-list').innerHTML = players.map(p => `
+        <div class="flex items-center justify-between p-6 hover:bg-white/2 transition-colors">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-2xl overflow-hidden bg-white/5 border border-white/10">${p.photo ? `<img src="${p.photo}" class="w-full h-full object-cover">` : ''}</div>
+            <div><p class="font-bold text-white text-sm">${p.name}</p><p class="text-[9px] text-blue-500 uppercase font-black tracking-widest">${p.position}</p></div>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="openPlayerModal('${p.id}')" class="p-2.5 text-slate-500 hover:text-white bg-white/5 rounded-xl transition-all">✎</button>
+            <button onclick="deletePlayer('${p.id}')" class="p-2.5 text-slate-500 hover:text-red-500 bg-white/5 rounded-xl transition-all">✖</button>
+          </div>
+        </div>`).join('');
+      document.getElementById('games-list').innerHTML = games.map(g => `
+        <div class="flex justify-between items-center p-6 hover:bg-white/2 transition-colors">
+          <div><p class="font-bold text-white text-sm italic">${g.title}</p><p class="text-[9px] text-slate-500 font-bold uppercase mt-1">${g.date} • ${g.playerIds.length} ATLETAS</p></div>
+          <div class="flex gap-2">
+            <button onclick="openGameModal('${g.id}')" class="p-2.5 text-slate-500 hover:text-white bg-white/5 rounded-xl transition-all">✎</button>
+            <button onclick="deleteGame('${g.id}')" class="p-2.5 text-slate-500 hover:text-red-500 bg-white/5 rounded-xl transition-all">✖</button>
+          </div>
+        </div>`).reverse().join('');
+    }
+
+    function renderLoginOptions() {
+      const select = document.getElementById('player-select');
+      if (!select) return;
+      const currentVal = select.value;
+      select.innerHTML = '<option value="">Seleciona o teu nome...</option>';
+      players.sort((a,b) => a.name.localeCompare(b.name)).forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.id; opt.textContent = p.name; select.appendChild(opt);
+      });
+      select.value = currentVal;
+    }
+
+    function openPlayerModal(playerId = null) {
+      tempPhoto = "";
+      document.getElementById('edit-player-id').value = playerId || "";
+      document.getElementById('new-player-name').value = "";
+      if (playerId) {
+        const p = players.find(x => x.id === playerId);
+        document.getElementById('new-player-name').value = p.name;
+        document.getElementById('new-player-position').value = p.position;
+        tempPhoto = p.photo || "";
+      }
+      document.getElementById('photo-preview-container').innerHTML = tempPhoto ? `<img src="${tempPhoto}" class="w-full h-full object-cover">` : '<p class="text-[9px] font-black text-slate-500 uppercase tracking-widest text-center px-4">Foto</p>';
+      openModal('player-modal');
+    }
+
+    function savePlayer() {
+      const id = document.getElementById('edit-player-id').value;
+      const name = document.getElementById('new-player-name').value.trim();
+      const pos = document.getElementById('new-player-position').value;
+      if (!name) return;
+      if (id) {
+        const idx = players.findIndex(p => p.id === id);
+        players[idx] = { ...players[idx], name, position: pos, photo: tempPhoto };
+      } else {
+        players.push({ id: 'p' + Date.now(), name, position: pos, photo: tempPhoto });
+      }
+      saveData(); closeModal('player-modal');
+    }
+
+    function deletePlayer(id) {
+      if(!confirm('Remover este atleta?')) return;
+      players = players.filter(p => p.id !== id);
+      saveData();
+    }
+
+    function openGameModal(gameId = null) {
+      document.getElementById('edit-game-id').value = gameId || "";
+      let selectedIds = [];
+      if (gameId) {
+        const g = games.find(x => x.id === gameId);
+        document.getElementById('new-game-title').value = g.title;
+        document.getElementById('new-game-date').value = g.date;
+        selectedIds = g.playerIds;
+      } else {
+        document.getElementById('new-game-title').value = "";
+        document.getElementById('new-game-date').value = new Date().toISOString().split('T')[0];
+      }
+      document.getElementById('call-up-list').innerHTML = players.map(p => `
+        <div class="relative group">
+          <input type="checkbox" id="c-${p.id}" value="${p.id}" class="hidden player-checkbox" ${selectedIds.includes(p.id) ? 'checked' : ''}>
+          <label for="c-${p.id}" class="flex flex-col items-center p-4 rounded-3xl bg-white/5 border-2 border-transparent cursor-pointer hover:bg-white/10 hover:border-blue-500/30 transition-all text-center relative overflow-hidden">
+            <div class="check-indicator absolute top-2 right-2 hidden w-5 h-5 bg-blue-600 rounded-full items-center justify-center border border-white z-20"><span class="text-[8px] text-white">✓</span></div>
+            <div class="w-14 h-14 rounded-2xl overflow-hidden bg-white/10 mb-3 border-2 border-transparent relative z-10">${p.photo ? `<img src="${p.photo}" class="w-full h-full object-cover">` : ''}</div>
+            <span class="text-[9px] font-black uppercase text-slate-400 truncate w-full relative z-10">${p.name.split(' ')[0]}</span>
+            <span class="text-[7px] font-bold text-slate-600 uppercase truncate w-full relative z-10">${p.position}</span>
+          </label>
+        </div>`).join('');
+      openModal('game-modal');
+    }
+
+    function saveGame() {
+      const id = document.getElementById('edit-game-id').value;
+      const title = document.getElementById('new-game-title').value;
+      const date = document.getElementById('new-game-date').value;
+      const pIds = Array.from(document.querySelectorAll('.player-checkbox:checked')).map(i => i.value);
+      if (!title || pIds.length === 0) return;
+      if (id) {
+        const idx = games.findIndex(g => g.id === id);
+        games[idx] = { ...games[idx], title, date, playerIds: pIds };
+      } else {
+        games.push({ id: 'g' + Date.now(), title, date, playerIds: pIds });
+      }
+      saveData(); closeModal('game-modal');
+    }
+
+    function deleteGame(id) {
+      if(!confirm('Eliminar este jogo?')) return;
+      games = games.filter(g => g.id !== id);
+      saveData();
+    }
+
+    function handlePhotoUpload(input) {
+      if (input.files?.[0]) {
+        const reader = new FileReader();
+        reader.onload = e => {
+          tempPhoto = e.target.result;
+          document.getElementById('photo-preview-container').innerHTML = `<img src="${tempPhoto}" class="w-full h-full object-cover">`;
+        };
+        reader.readAsDataURL(input.files[0]);
+      }
+    }
+
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+    function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+
+    window.onload = init;
+  </script>
+ </body>
+</html>
